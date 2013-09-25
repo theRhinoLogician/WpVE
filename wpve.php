@@ -73,7 +73,7 @@ echo "<div align='center'>
 	<br>
 	<h2>Analizar el <font color='0033FF'>dominio</font>:</h2>
 	<form action='' method='POST'>
-	<input type='text' class='dominio' name='protocolo' value='http://www.' size='8'>
+	<input type='text' class='dominio' name='protocolo' value='http://' size='8'>
 	<input type='text' class='dominio' name='dominio' value='$localhost' size='25'>
 	<br>
 	<br>
