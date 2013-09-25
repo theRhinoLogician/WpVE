@@ -45,6 +45,9 @@ La Base de datos de Plugins vulnerables es una recolección de proyectos entre l
 		background-color: #D8D8D8;
 		height: 1px;
 	}
+	table{
+		width: 95%;
+	}
 </style>
 
 <!-- Jquery sources -->
@@ -63,7 +66,7 @@ La Base de datos de Plugins vulnerables es una recolección de proyectos entre l
 <body>
 <?php
 //Obteiene la URL actual
-$localhost = $_SERVER['HTTP_HOST'].":".$_SERVER['SERVER_PORT']."/";
+$localhost = $_SERVER['HTTP_HOST']."/";
 
 //Formulario de dominio a analizar
 echo "<div align='center'>
@@ -82,49 +85,51 @@ echo "<div align='center'>
 // Recolecta los datos
 $protocolo = htmlspecialchars($_POST['protocolo'], ENT_QUOTES);
 $dominio = htmlspecialchars($_POST['dominio'], ENT_QUOTES);
-$path = "wp-content/plugins";
+$path = "wp-content";
 
 if (isset($_POST['analizar']) && !empty($dominio)) {
-	echo "<div align='center' style='color: green;'>Se buscaron ".count(file('vulns.bd'))." plugins vulnerables en: <a target='_blank' href='".$dominio.$path."'>".$dominio.$path."/</a> <br> Resultados:</div>";
-	$dato = file("vulns.bd") or exit("<section style='color: orange;' align='center'>Hubo un error al cargar la base de Datos, asegurese de tener los permisos correctos!</section>");
+	echo "<div align='center' style='color: green;'>Se buscaron ".count(file('vl.bd'))." vulnerabilidades en: <a target='_blank' href='".$dominio.$path."'>".$dominio.$path."/</a> <br> Resultados:</div>";
+	$dato = file("vl.bd") or exit("<section style='color: orange;' align='center'>Hubo un error al cargar la base de Datos, asegurese de tener los permisos correctos!</section>");
 	foreach($dato as $valor){
-	list($plugin, $referencia, $tipo) = explode("|", $valor);
+	list($vuln, $referencia, $tipo) = explode("|", $valor);
 	//construir URL: plugins
-	$url = "$protocolo"."$dominio"."$path"."/"."$plugin";
+	$url = "$protocolo"."$dominio"."$path"."/"."$vuln";
 	$analisis = @get_headers($url);
+	//Array nombre de la vulnerabilidad
+	list($ubicacion, $nombre) = explode("/", $vuln);
 	if ($analisis[0] == "HTTP/1.1 200 OK") {
 		echo "<table>
-			<tr>
-				<td>Plugin:</td>
-				<td>Dominio:</td>
-				<td>Referencia:</td>
-				<td>Vulnerabilidad:</td>
-				<td>Respuesta del Servidor</td>
+			<tr style='background-color: #6E6E6E;'>
+				<td width='25%'>Plugin / Tema:</td>
+				<td width='25%'>Ubicación:</td>
+				<td width='30%'>Referencia:</td>
+				<td width='10%'>Vulnerabilidad:</td>
+				<td width='10%'>Respuesta del Servidor</td>
 			</tr>
 			<tr>
-				<td>$plugin</td>
-				<td><a target='_blank' href='$url'>$url</td>
-				<td><a target='_blank' href='$referencia'>$referencia</td>
-				<td>$tipo</td>
-				<td style='color: green;'>202 - OK</td>
+				<td width='25%'>$nombre</td>
+				<td width='25%'><a target='_blank' href='$url'>$url</td>
+				<td width='30%'><a target='_blank' href='$referencia'>$referencia</td>
+				<td width='10%'>$tipo</td>
+				<td width='10%' style='color: green;'>202 - Ok</td>
 			</tr>
 		</table>";
 	}
 	elseif ($analisis[0] == "HTTP/1.1 301 Moved Permanently") {
 		echo "<table>
-			<tr>
-				<td>Plugin:</td>
-				<td>Dominio:</td>
-				<td>Referencia:</td>
-				<td>Vulnerabilidad:</td>
-				<td>Respuesta del Servidor</td>
+			<tr style='background-color: #6E6E6E;'>
+				<td width='25%'>Plugin / Tema:</td>
+				<td width='25%'>Ubicación:</td>
+				<td width='30%'>Referencia:</td>
+				<td width='10%'>Vulnerabilidad:</td>
+				<td width='10%'>Respuesta del Servidor</td>
 			</tr>
 			<tr>
-				<td>$plugin</td>
-				<td><a target='_blank' href='$url'>$url</td>
-				<td><a target='_blank' href='$referencia'>$referencia</td>
-				<td>$tipo</td>
-				<td style='color: gray;'>301 - Movido Permanentemente</td>
+				<td width='25%'>$nombre</td>
+				<td width='25%'><a target='_blank' href='$url'>$url</td>
+				<td width='30%'><a target='_blank' href='$referencia'>$referencia</td>
+				<td width='10%'>$tipo</td>
+				<td width='10%' style='color: gray;'>301 - Movido Permanentemente</td>
 			</tr>
 		</table>";
 	}
