@@ -89,7 +89,7 @@ $path = "wp-content";
 
 if (isset($_POST['analizar']) && !empty($dominio)) {
 	echo "<div align='center' style='color: green;'>Se buscaron ".count(file('vulns.bd'))." vulnerabilidades en: <a target='_blank' href='".$protocolo.$dominio.$path."'>".$protocolo.$dominio.$path."/</a> <br> Resultados:</div>";
-	$dato = file("vl.bd") or exit("<section style='color: orange;' align='center'>Hubo un error al cargar la base de Datos, asegurese de tener los permisos correctos!</section>");
+	$dato = file("vulns.bd") or exit("<section style='color: orange;' align='center'>Hubo un error al cargar la base de Datos, asegurese de tener los permisos correctos!</section>");
 	foreach($dato as $valor){
 	list($vuln, $referencia, $tipo) = explode("|", $valor);
 	//construir URL: plugins
