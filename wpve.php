@@ -88,7 +88,7 @@ $dominio = htmlspecialchars($_POST['dominio'], ENT_QUOTES);
 $path = "wp-content";
 
 if (isset($_POST['analizar']) && !empty($dominio)) {
-	echo "<div align='center' style='color: green;'>Se buscaron ".count(file('vl.bd'))." vulnerabilidades en: <a target='_blank' href='".$dominio.$path."'>".$dominio.$path."/</a> <br> Resultados:</div>";
+	echo "<div align='center' style='color: green;'>Se buscaron ".count(file('vl.bd'))." vulnerabilidades en: <a target='_blank' href='".$protocolo.$dominio.$path."'>".$protocolo.$dominio.$path."/</a> <br> Resultados:</div>";
 	$dato = file("vl.bd") or exit("<section style='color: orange;' align='center'>Hubo un error al cargar la base de Datos, asegurese de tener los permisos correctos!</section>");
 	foreach($dato as $valor){
 	list($vuln, $referencia, $tipo) = explode("|", $valor);
