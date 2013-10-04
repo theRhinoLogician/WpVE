@@ -15,9 +15,7 @@ La Base de datos de Plugins vulnerables es una recolección de proyectos entre l
 [+] www.exploit-db.com
 [+] www.packetstormsecurity.net
 
-[+] www.xora.org | @xoraorg | @HackeaMesta
-[+] contacto@xora.org
-[+] www.github.com/HackeaMesta
+[+] www.xora.org | @xoraorg | @HackeaMesta | contacto@xora.org | www.github.com/HackeaMesta
 -->
 
 <!-- Fuentes CSS -->
@@ -26,7 +24,7 @@ La Base de datos de Plugins vulnerables es una recolección de proyectos entre l
 	body{
 		color: #E6E6E6;
 		background-image:  url('http://i.imgur.com/dyllFKf.png'); /* Imagen por Ashishmalik1 0 http://gnome-look.org/content/show.php/Futuristic+Conky+Terminus?content=157049 */
-		background-size:100%%;
+		background-size:100%;
 		background-repeat: no-repeat;
 	}
 	.dominio{
@@ -39,14 +37,10 @@ La Base de datos de Plugins vulnerables es una recolección de proyectos entre l
 		color: #2ECCFA;
 		font-size: 14px;
 	}
-	hr{
-		width: 40%;
-		color: #D8D8D8;
-		background-color: #D8D8D8;
-		height: 1px;
-	}
 	table{
 		width: 90%;
+		left: 5%;
+		position: absolute;
 	}
 </style>
 
@@ -61,7 +55,6 @@ La Base de datos de Plugins vulnerables es una recolección de proyectos entre l
 		.button()
 	});
 </script>
-
 <script type="text/javascript">
 $(function() {
 	$( "#msj" ).dialog({
@@ -74,9 +67,7 @@ $(function() {
 	});
 });
 </script>
-
 </head>
-
 <body>
 <?php
 // Obtiene la URL actual
@@ -87,52 +78,116 @@ function obten_url(){
 
 	$path = str_replace($c,'',$_SERVER['PHP_SELF']);
 
-	$url = $a.$b.$path;
+	$u = $a.$b.$path;
 
-	return $url;
+	return $u;
 }
 
 // Formulario de dominio a analizar
 echo "<div align='center'>
-	<br>
-	<h2>Analizar el <font color='0033FF'>dominio</font>:</h2>
-	<form action='' method='POST'>
+<br>
+<h2>Analizar sitio:</h2>
+<form action='' method='POST'>
 	<input type='text' class='dominio' name='dominio' value='".obten_url()."' size='30'>
 	<br>
 	<br>
 	<input name='analizar' type='submit' value='Analizar'>
-	</form>
-	<br>
-	</div>";
+</form>
+<br>
+</div>";
 
 // Recolecta los datos
 $dominio = htmlspecialchars($_POST['dominio'], ENT_QUOTES);
 $path = "wp-content";
 
+// Obtiene la versión de wp a través de meta tags
+function obten_meta(){
+	$sitio = htmlspecialchars($_POST['dominio'], ENT_QUOTES);
+	$meta = get_meta_tags($sitio);
+	$generator = $meta['generator'];
+
+	if ($generator == "") {
+		$version =	"";
+	}
+	else{
+		$version = str_replace("WordPress", "", $generator);
+	}
+
+	return $version;
+}
+
+// Analiza si existe el archivo Readme
+function archivo_readme(){
+	$archivo = "readme.html";
+	$site = htmlspecialchars($_POST['dominio'], ENT_QUOTES);
+	$url_archivo = $site.$archivo;
+
+	$respuesta = @get_headers($url_archivo);
+	if ($respuesta[0] == "HTTP/1.1 200 OK") {
+		$readme = $url_archivo;
+	}
+	elseif ($respuesta[0] == "HTTP/1.1 301 Moved Permanently") {
+		$readme = $url_archivo;
+	}
+	else{
+		$readme = "";
+	}
+	return $readme;
+}
+
+// Full Path disclosure
+function fpd(){
+	$p = "wp-includes/rss-functions.php";
+	$s = htmlspecialchars($_POST['dominio'], ENT_QUOTES);
+	$ur = $s.$p;
+
+	$test = @get_headers($ur);
+	if ($test[0] != "HTTP/1.0 500 Internal Server Error") {
+		$fpd = $ur;
+	}
+	else{
+		$fpd = "";
+	}
+	return $fpd;
+}
+
 if (isset($_POST['analizar']) && !empty($dominio)) {
 	echo "<div id='msj' title='Revisando...' align='center' style='color: green;'>Busque ".count(file('vulns.bd'))." vulnerabilidades en: <a target='_blank' href='".$dominio.$path."'>".$dominio.$path."</a> <br>:</div>";
-	$dato = file("vulns.bd") or exit("<section style='color: orange;' align='center'>Hubo un error al cargar la base de Datos, asegurese de tener los permisos correctos!</section>");
+	$dato = file("vulns.bd") or exit("<section style='color: orange;' align='center'>No pude cargar la base de Datos :( asegurese de tener los permisos correctos!</section>");
+
+	echo "
+	<table>
+	<tr style='background-color: #6E6E6E;'>
+		<td colspan='1' >Versión de Wordpress</td>
+		<td colspan='2' >Archivo Readme</td>
+		<td colspan='2' >Full Path Disclosure</td>
+	</tr>
+	<tr>
+		<td colspan='1' >".obten_meta()."</td>
+		<td colspan='2' ><a target='_blank' href='".archivo_readme()."'>".archivo_readme()."</a></td>
+		<td colspan='2' ><a target='_blank' href='".fpd()."'>".fpd()."</a></td>
+	</tr>
+	<tr style='background-color: #6E6E6E;'>
+				<td width='25%'>Plugin / Tema:</td>
+				<td width='25%'>Ubicación:</td>
+				<td width='30%'>Referencia:</td>
+				<td width='10%'>Vulnerabilidad:</td>
+				<td width='10%'>Respuesta del Servidor</td>
+	</tr>";
 
 	foreach($dato as $valor){
 		list($vuln, $referencia, $tipo) = explode("|", $valor);
 
 		// Construir URL: plugins
 		$url = $dominio.$path."/"."$vuln";
-		$analisis = @get_headers($url);
+		$analisis = get_headers($url);
 
 		// Array nombre de la vulnerabilidad
 		list($ubicacion, $nombre) = explode("/", $vuln);
 
 		//Imprime si el Header es = 200
 		if ($analisis[0] == "HTTP/1.1 200 OK") {
-			echo "<table>
-				<tr style='background-color: #6E6E6E;'>
-					<td width='25%'>Plugin / Tema:</td>
-					<td width='25%'>Ubicación:</td>
-					<td width='30%'>Referencia:</td>
-					<td width='10%'>Vulnerabilidad:</td>
-					<td width='10%'>Respuesta del Servidor</td>
-				</tr>
+			echo "
 				<tr>
 					<td width='25%'>$nombre</td>
 					<td width='25%'><a target='_blank' href='$url'>$url</td>
@@ -140,20 +195,12 @@ if (isset($_POST['analizar']) && !empty($dominio)) {
 					<td width='10%'>$tipo</td>
 					<td width='10%' style='color: green;'>202 - Ok</td>
 				</tr>
-			</table>
 			";
 		}
 
 		//Imprime si el Header es = 301
 		elseif ($analisis[0] == "HTTP/1.1 301 Moved Permanently") {
-			echo "<table>
-				<tr style='background-color: #6E6E6E;'>
-					<td width='25%'>Plugin / Tema:</td>
-					<td width='25%'>Ubicación:</td>
-					<td width='30%'>Referencia:</td>
-					<td width='10%'>Vulnerabilidad:</td>
-					<td width='10%'>Respuesta del Servidor</td>
-				</tr>
+			echo "
 				<tr>
 					<td width='25%'>$nombre</td>
 					<td width='25%'><a target='_blank' href='$url'>$url</td>
@@ -161,13 +208,13 @@ if (isset($_POST['analizar']) && !empty($dominio)) {
 					<td width='10%'>$tipo</td>
 					<td width='10%' style='color: gray;'>301 - Movido Permanentemente</td>
 				</tr>
-			</table>
 			";
 		}
 		else{
 
 		}
 	}
+	echo "</table>";
 }
 elseif (isset($_POST['analizar']) && empty($dominio)) {
 	echo "<div id='msj' title='Error :('><p>Introduce un dominio >_<</p></div>";
